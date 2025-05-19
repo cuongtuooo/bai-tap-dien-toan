@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Simple CRUD App</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    input, button { margin: 5px; }
+    ul { list-style-type: none; padding-left: 0; }
+    li { margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>Simple To-Do App (CRUD)</h1>
+
+  <input type="text" id="taskInput" placeholder="Enter a task">
+  <button onclick="addTask()">Add</button>
+
+  <ul id="taskList"></ul>
+
+  <script>
+    const api = 'https://jsonplaceholder.typicode.com/todos';
+
+    async function fetchTasks() {
+      const res = await fetch(api + '?_limit=5');
+      const tasks = await res.json();
+      const list = document.getElementById('taskList');
+      list.innerHTML = '';
+      tasks.forEach(task => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <span>${task.title}</span>
+          <button onclick="editTask(${task.id})">Edit</button>
+          <button onclick="deleteTask(${task.id})">Delete</button>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    async function addTask() {
+      const input = document.getElementById('taskInput');
+      if (!input.value.trim()) return;
+      const res = await fetch(api, {
+        method: 'POST',
+        body: JSON.stringify({ title: input.value, completed: false }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      input.value = '';
+      fetchTasks();
+    }
+
+    async function editTask(id) {
+      const newTitle = prompt('Enter new task title:');
+      if (!newTitle) return;
+      await fetch(api + '/' + id, {
+        method: 'PUT',
+        body: JSON.stringify({ title: newTitle, completed: false }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      fetchTasks();
+    }
+
+    async function deleteTask(id) {
+      await fetch(api + '/' + id, { method: 'DELETE' });
+      fetchTasks();
+    }
+
+    fetchTasks();
+  </script>
+</body>
+</html>
